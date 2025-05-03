@@ -98,37 +98,58 @@ export function SpeechToText({
                 return;
             }
 
-            // Convert blob to base64 in a way that works for binary data
-            const reader = new FileReader();
-            const audioBase64Promise = new Promise<string>((resolve) => {
-                reader.onloadend = () => {
-                    // FileReader result is a data URL like "data:audio/webm;base64,<actual-base64>"
-                    // We need to extract just the base64 part
-                    const base64 = reader.result?.toString().split(',')[1] || '';
-                    resolve(base64);
-                };
-                reader.readAsDataURL(audioBlob);
-            });
-
-            const base64Audio = await audioBase64Promise;
-
-            // Send as JSON with base64-encoded audio
-            const response = await fetch("/api/transcribe", {
+            // Step 1: Get a pre-signed URL for S3 upload
+            console.log("Requesting S3 upload URL...");
+            const getUrlResponse = await fetch("/api/get-upload-url", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
-                    audio: base64Audio,
-                    mimeType: audioBlob.type,
+                    contentType: audioBlob.type,
                 }),
             });
 
-            if (!response.ok) {
-                throw new Error("Failed to transcribe audio");
+            if (!getUrlResponse.ok) {
+                throw new Error("Failed to get upload URL");
             }
 
-            const data = await response.json();
+            const { uploadUrl, fileKey } = await getUrlResponse.json();
+            console.log(`Got S3 upload URL for file: ${fileKey}`);
+
+            // Step 2: Upload the audio file directly to S3
+            console.log("Uploading audio to S3...");
+            const uploadResponse = await fetch(uploadUrl, {
+                method: "PUT",
+                body: audioBlob,
+                headers: {
+                    "Content-Type": audioBlob.type,
+                },
+            });
+
+            if (!uploadResponse.ok) {
+                throw new Error("Failed to upload audio to S3");
+            }
+
+            console.log("Audio uploaded to S3 successfully");
+
+            // Step 3: Trigger transcription from S3
+            console.log("Requesting transcription from S3...");
+            const transcriptionResponse = await fetch("/api/transcribe-from-s3", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    fileKey,
+                }),
+            });
+
+            if (!transcriptionResponse.ok) {
+                throw new Error("Failed to transcribe audio from S3");
+            }
+
+            const data = await transcriptionResponse.json();
             console.log("Transcription complete:", data.text);
             onTranscriptionComplete(data.text);
         } catch (error) {
