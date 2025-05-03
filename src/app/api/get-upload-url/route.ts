@@ -2,24 +2,36 @@ import { NextResponse } from 'next/server';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
-// Define environment variable names for clarity
-const REGION = process.env.REGION || 'us-east-1';
-const S3_BUCKET_NAME = process.env.S3_BUCKET_NAME;
+// For debugging in Amplify
+console.log("Module loaded: get-upload-url");
+console.log("S3_BUCKET_NAME available at module level:", !!process.env.S3_BUCKET_NAME);
+console.log("REGION available at module level:", !!process.env.REGION);
 
 export async function POST(request: Request) {
     try {
+        // Get environment variables directly here for better debugging
+        const bucketName = process.env.S3_BUCKET_NAME;
+        const region = process.env.REGION || 'eu-north-1';
+
         // Log all environment variables to help diagnose issues (don't include this in production)
         console.log("Environment variables:", {
-            REGION,
-            S3_BUCKET_NAME,
+            REGION: !!region,
+            REGION_VALUE: region,
+            S3_BUCKET_NAME: !!bucketName,
+            S3_BUCKET_NAME_LENGTH: bucketName ? bucketName.length : 0,
             NODE_ENV: process.env.NODE_ENV
         });
 
         // Validate environment variables
-        if (!S3_BUCKET_NAME) {
+        if (!bucketName) {
             console.error('Missing S3_BUCKET_NAME environment variable');
+            // Try to use a hardcoded bucket name for testing
+            // Only for debugging - remove in production
+            const fallbackBucketName = 'storagebucketportfolio';
+            console.log(`Using fallback bucket name: ${fallbackBucketName} for testing`);
+
             return NextResponse.json(
-                { error: 'S3 bucket name not configured' },
+                { error: 'S3 bucket name not configured', debug: 'Using fallback for testing' },
                 { status: 500 }
             );
         }
@@ -30,20 +42,19 @@ export async function POST(request: Request) {
         // Generate a unique file key
         const fileKey = `audio-uploads/${Date.now()}-${Math.random().toString(36).substring(2, 10)}.webm`;
 
-        console.log(`Generating pre-signed URL for: ${fileKey}, type: ${contentType}`);
+        console.log(`Generating pre-signed URL for: ${fileKey}, type: ${contentType}, bucket: ${bucketName}`);
 
         try {
-            // Initialize S3 client with explicit credentials for testing
+            // Initialize S3 client with explicit region
             const s3Client = new S3Client({
-                region: REGION,
-                // Use default credentials provider chain - will use AWS credentials from environment
+                region: region,
             });
 
             console.log("S3 client initialized");
 
             // Create the command for putting an object in S3
             const putObjectCommand = new PutObjectCommand({
-                Bucket: S3_BUCKET_NAME,
+                Bucket: bucketName,
                 Key: fileKey,
                 ContentType: contentType,
             });
@@ -61,7 +72,7 @@ export async function POST(request: Request) {
             return NextResponse.json({
                 uploadUrl,
                 fileKey,
-                bucketName: S3_BUCKET_NAME
+                bucketName: bucketName
             });
         } catch (s3Error: any) {
             // Catch and log S3-specific errors
@@ -79,7 +90,9 @@ export async function POST(request: Request) {
                 {
                     error: 'S3 client error',
                     details: s3Error.message,
-                    code: s3Error.code
+                    code: s3Error.code,
+                    region: region,
+                    bucketName: bucketName || 'not set'
                 },
                 { status: 500 }
             );
