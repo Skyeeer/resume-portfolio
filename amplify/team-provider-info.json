@@ -1,0 +1,28 @@
+{
+  "dev": {
+    "awscloudformation": {
+      "AuthRoleName": "amplify-resumeportfolio-dev-38c6c-authRole",
+      "UnauthRoleArn": "arn:aws:iam::509399592692:role/amplify-resumeportfolio-dev-38c6c-unauthRole",
+      "AuthRoleArn": "arn:aws:iam::509399592692:role/amplify-resumeportfolio-dev-38c6c-authRole",
+      "Region": "eu-north-1",
+      "DeploymentBucketName": "amplify-resumeportfolio-dev-38c6c-deployment",
+      "UnauthRoleName": "amplify-resumeportfolio-dev-38c6c-unauthRole",
+      "StackName": "amplify-resumeportfolio-dev-38c6c",
+      "StackId": "arn:aws:cloudformation:eu-north-1:509399592692:stack/amplify-resumeportfolio-dev-38c6c/7a2365c0-2845-11f0-a9b1-0a93568f8d4d",
+      "AmplifyAppId": "dj8xnctvhs8gv"
+    }
+  },
+  "env": {
+    "awscloudformation": {
+      "AuthRoleName": "amplify-resumeportfolio-env-29551-authRole",
+      "UnauthRoleArn": "arn:aws:iam::509399592692:role/amplify-resumeportfolio-env-29551-unauthRole",
+      "AuthRoleArn": "arn:aws:iam::509399592692:role/amplify-resumeportfolio-env-29551-authRole",
+      "Region": "eu-north-1",
+      "DeploymentBucketName": "amplify-resumeportfolio-env-29551-deployment",
+      "UnauthRoleName": "amplify-resumeportfolio-env-29551-unauthRole",
+      "StackName": "amplify-resumeportfolio-env-29551",
+      "StackId": "arn:aws:cloudformation:eu-north-1:509399592692:stack/amplify-resumeportfolio-env-29551/abb07c90-2845-11f0-9f5c-0e52f9aec411",
+      "AmplifyAppId": "dj8xnctvhs8gv"
+    }
+  }
+}
