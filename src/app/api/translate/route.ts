@@ -6,6 +6,14 @@ interface TranslateRequest {
     targetLanguage?: string;
 }
 
+// Add debug logging when module loads
+console.log("Translate module loaded");
+console.log("Translation environment variables present:", {
+    GOOGLE_APPLICATION_CREDENTIALS: !!process.env.GOOGLE_APPLICATION_CREDENTIALS,
+    GOOGLE_APPLICATION_JSON: !!process.env.GOOGLE_APPLICATION_JSON,
+    GOOGLE_PROJECT_ID: !!process.env.GOOGLE_PROJECT_ID
+});
+
 export async function POST(req: Request) {
     try {
         // Parse the incoming request
@@ -28,10 +36,23 @@ export async function POST(req: Request) {
         console.log("API: Will translate to language:", targetLanguage);
 
         // Check if Google credentials are configured
-        if (!process.env.GOOGLE_APPLICATION_CREDENTIALS && !process.env.GOOGLE_APPLICATION_JSON) {
-            console.error("Missing Google credentials");
+        const hasCredentialsFile = !!process.env.GOOGLE_APPLICATION_CREDENTIALS;
+        const hasCredentialsJson = !!process.env.GOOGLE_APPLICATION_JSON;
+
+        if (!hasCredentialsFile && !hasCredentialsJson) {
+            console.error("Missing Google credentials - neither GOOGLE_APPLICATION_CREDENTIALS nor GOOGLE_APPLICATION_JSON is set");
             return NextResponse.json(
                 { error: 'Google Cloud credentials not configured' },
+                { status: 500 }
+            );
+        }
+
+        // Get project ID
+        const projectId = process.env.GOOGLE_PROJECT_ID;
+        if (!projectId) {
+            console.error("Missing GOOGLE_PROJECT_ID environment variable");
+            return NextResponse.json(
+                { error: 'Google Cloud project ID not configured' },
                 { status: 500 }
             );
         }
@@ -40,31 +61,32 @@ export async function POST(req: Request) {
         let translationClient;
 
         try {
-            if (process.env.GOOGLE_APPLICATION_JSON) {
+            if (hasCredentialsJson) {
                 // When using JSON credentials directly
-                const credentials = JSON.parse(process.env.GOOGLE_APPLICATION_JSON);
-                translationClient = new TranslationServiceClient({
-                    credentials,
-                });
+                console.log("Using JSON credentials");
+                try {
+                    const credentials = JSON.parse(process.env.GOOGLE_APPLICATION_JSON || '');
+                    translationClient = new TranslationServiceClient({
+                        credentials,
+                    });
+                    console.log("Successfully created client with JSON credentials");
+                } catch (jsonError: any) {
+                    console.error("Error parsing GOOGLE_APPLICATION_JSON:", jsonError.message);
+                    return NextResponse.json(
+                        { error: 'Invalid Google Cloud credentials JSON', details: jsonError.message },
+                        { status: 500 }
+                    );
+                }
             } else {
                 // When using credentials file
+                console.log("Using credentials file:", process.env.GOOGLE_APPLICATION_CREDENTIALS);
                 translationClient = new TranslationServiceClient();
+                console.log("Successfully created client with credentials file");
             }
         } catch (initError: any) {
             console.error("Error initializing translation client:", initError);
             return NextResponse.json(
-                { error: 'Failed to initialize translation client' },
-                { status: 500 }
-            );
-        }
-
-        // Configure the request
-        const projectId = process.env.GOOGLE_PROJECT_ID;
-
-        if (!projectId) {
-            console.error("Missing GOOGLE_PROJECT_ID");
-            return NextResponse.json(
-                { error: 'Google Cloud project ID not configured' },
+                { error: 'Failed to initialize translation client', details: initError.message },
                 { status: 500 }
             );
         }
@@ -83,7 +105,9 @@ export async function POST(req: Request) {
             console.log("API: FINAL TRANSLATION PARAMS:", JSON.stringify(translateParams));
 
             // Call Google Translate API
+            console.log("Calling Google Translate API...");
             const [response] = await translationClient.translateText(translateParams);
+            console.log("Received response from Google Translate API");
 
             if (!response || !response.translations || response.translations.length === 0) {
                 console.error("Empty translation response");
