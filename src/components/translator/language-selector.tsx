@@ -10,6 +10,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
+import { FaGlobe } from "react-icons/fa";
 
 interface LanguageOption {
     code: string;
@@ -59,15 +60,28 @@ export function LanguageSelector({ onLanguageChange, defaultLanguage = "es", val
         onLanguageChange(newValue);
     };
 
+    const getLanguageName = (code: string) => {
+        return LANGUAGES.find(lang => lang.code === code)?.name || code;
+    };
+
     return (
-        <div className="w-full max-w-xs">
+        <div className="w-full">
+            <div className="flex items-center gap-2 mb-3">
+                <div className="w-6 h-6 rounded-full bg-secondary/20 flex items-center justify-center">
+                    <FaGlobe className="text-secondary" size={14} />
+                </div>
+                <span className="text-sm text-muted-foreground">
+                    Currently translating to <span className="font-medium text-secondary">{getLanguageName(selectedLanguage)}</span>
+                </span>
+            </div>
+
             <Select value={selectedLanguage} onValueChange={handleLanguageChange}>
-                <SelectTrigger className="w-full">
+                <SelectTrigger className="w-full border-secondary/20 focus:ring-secondary/30 bg-card">
                     <SelectValue placeholder="Select language" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="max-h-80">
                     <SelectGroup>
-                        <SelectLabel>Translate to</SelectLabel>
+                        <SelectLabel className="text-secondary">Select target language</SelectLabel>
                         {LANGUAGES.map((language) => (
                             <SelectItem key={language.code} value={language.code}>
                                 {language.name}

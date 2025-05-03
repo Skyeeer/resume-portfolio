@@ -6,6 +6,7 @@ import { SpeechToText } from "@/components/translator/speech-to-text";
 import { TextToSpeech } from "@/components/translator/text-to-speech";
 import { TranslationChat } from "@/components/translator/translation-chat";
 import { LanguageSelector } from "@/components/translator/language-selector";
+import { FaArrowLeft } from "react-icons/fa";
 
 interface Message {
     text: string;
@@ -144,51 +145,63 @@ export default function TranslatorPage() {
     };
 
     return (
-        <main className="flex min-h-screen flex-col items-center p-4 md:p-24">
-            <div className="w-full max-w-3xl flex flex-col gap-6">
-                <div className="flex items-center justify-between">
-                    <h1 className="text-3xl font-bold">Live Translator</h1>
-                    <Link href="/" className="text-sm underline">
-                        Back to Portfolio
-                    </Link>
-                </div>
+        <main className="min-h-screen bg-gradient-to-b from-secondary/5 via-background to-accent/5">
+            <div className="max-w-4xl mx-auto p-4 md:p-8">
+                <div className="flex flex-col gap-8">
+                    {/* Header with navigation */}
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <Link
+                                href="/"
+                                className="flex items-center gap-2 p-2 rounded-full bg-secondary/10 hover:bg-secondary/20 text-secondary transition-colors"
+                            >
+                                <FaArrowLeft size={16} />
+                            </Link>
+                            <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-secondary to-accent bg-clip-text text-transparent">
+                                AI Translator
+                            </h1>
+                        </div>
 
-                <div className="mb-4">
-                    <div className="flex justify-between items-center mb-2">
-                        <h2 className="text-lg font-medium">Select language to translate to:</h2>
                         <button
                             onClick={clearConversation}
-                            className="text-xs text-red-500 hover:underline"
+                            className="px-3 py-1.5 text-xs rounded-md border border-destructive/30 text-destructive hover:bg-destructive/10 transition-colors"
                         >
                             Clear Conversation
                         </button>
                     </div>
-                    <LanguageSelector
-                        onLanguageChange={handleLanguageChange}
-                        defaultLanguage="de"
-                        value={targetLanguage}
-                    />
-                </div>
 
-                <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4 flex-1 min-h-[50vh]">
-                    <TranslationChat
-                        messages={messages}
-                        isProcessing={isProcessing}
-                    />
-                </div>
+                    {/* Language selector */}
+                    <div className="bg-card shadow-md rounded-xl p-5 border border-secondary/10">
+                        <h2 className="text-lg font-medium mb-3 text-secondary">Select target language:</h2>
+                        <LanguageSelector
+                            onLanguageChange={handleLanguageChange}
+                            defaultLanguage="de"
+                            value={targetLanguage}
+                        />
+                    </div>
 
-                <div className="flex justify-center gap-4 flex-col items-center">
-                    <SpeechToText
-                        onTranscriptionComplete={handleTranscription}
-                        isProcessing={isProcessing}
-                        setIsProcessing={setIsProcessing}
-                    />
+                    {/* Chat container */}
+                    <div className="bg-card rounded-xl shadow-lg border border-accent/10 p-5 h-[50vh] overflow-hidden flex flex-col">
+                        <TranslationChat
+                            messages={messages}
+                            isProcessing={isProcessing}
+                        />
+                    </div>
 
-                    {messages.length > 0 && messages[messages.length - 1].isTranslated && (
-                        <div className="mt-4">
-                            <TextToSpeech text={messages[messages.length - 1].text} />
-                        </div>
-                    )}
+                    {/* Controls */}
+                    <div className="flex flex-col items-center gap-4 bg-card rounded-xl p-5 shadow-md border border-secondary/10">
+                        <SpeechToText
+                            onTranscriptionComplete={handleTranscription}
+                            isProcessing={isProcessing}
+                            setIsProcessing={setIsProcessing}
+                        />
+
+                        {messages.length > 0 && messages[messages.length - 1].isTranslated && (
+                            <div className="mt-2 w-full max-w-md">
+                                <TextToSpeech text={messages[messages.length - 1].text} />
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
         </main>

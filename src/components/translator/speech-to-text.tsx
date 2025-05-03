@@ -2,6 +2,7 @@
 
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
+import { FaMicrophone, FaStop } from "react-icons/fa";
 
 interface SpeechToTextProps {
     onTranscriptionComplete: (text: string) => void;
@@ -127,37 +128,37 @@ export function SpeechToText({
     };
 
     return (
-        <div className="flex flex-col gap-4 items-center">
-            <Button
-                onClick={isRecording ? stopRecording : startRecording}
-                variant={isRecording ? "destructive" : "default"}
-                size="lg"
-                className="rounded-full w-16 h-16"
-                disabled={(isProcessing && !isRecording) || isPreparing}
-            >
-                {isRecording ? (
-                    <span className="w-4 h-4 bg-white rounded-sm"></span>
-                ) : isPreparing ? (
-                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                ) : (
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        strokeWidth={1.5}
-                        stroke="currentColor"
-                        className="w-6 h-6"
-                    >
-                        <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z"
-                        />
-                    </svg>
-                )}
-            </Button>
-            <p className="text-sm">
-                {isRecording ? "Tap to stop" : isPreparing ? "Preparing..." : "Tap to record"}
+        <div className="flex flex-col gap-4 items-center w-full">
+            <div className="relative w-full flex justify-center items-center py-3">
+                <div className={`absolute inset-0 transition-opacity duration-700 blur-xl rounded-full ${isRecording ? 'opacity-100' : 'opacity-0'} ${isRecording ? 'bg-secondary/30 animate-pulse' : 'bg-transparent'}`}></div>
+                <button
+                    onClick={isRecording ? stopRecording : startRecording}
+                    className={`relative z-10 w-20 h-20 rounded-full shadow-lg flex items-center justify-center transition-all 
+                        ${isRecording
+                            ? 'bg-destructive text-destructive-foreground hover:bg-destructive/90'
+                            : 'bg-secondary text-secondary-foreground hover:bg-secondary/90'
+                        } ${(isProcessing && !isRecording) || isPreparing ? 'opacity-70 cursor-not-allowed' : 'cursor-pointer'}`
+                    }
+                    disabled={(isProcessing && !isRecording) || isPreparing}
+                >
+                    {isRecording ? (
+                        <FaStop size={24} />
+                    ) : isPreparing ? (
+                        <span className="h-6 w-6 animate-spin rounded-full border-3 border-secondary-foreground/30 border-t-secondary-foreground" />
+                    ) : (
+                        <FaMicrophone size={24} />
+                    )}
+                </button>
+            </div>
+            <p className="text-sm font-medium text-center">
+                {isRecording
+                    ? "Recording... Tap to stop"
+                    : isPreparing
+                        ? "Preparing microphone..."
+                        : isProcessing
+                            ? "Processing audio..."
+                            : "Tap to start recording"
+                }
             </p>
         </div>
     );
