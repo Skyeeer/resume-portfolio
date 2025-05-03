@@ -16,7 +16,7 @@ export default function Home() {
           <div className="flex flex-col order-2 md:order-1">
             <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-secondary to-accent bg-clip-text text-transparent">Charlie Ålander</h1>
             <p className="text-xl mb-6 text-muted-foreground">
-              Software Developer specialized in AI solutions
+              Software Developer
             </p>
             <div className="flex gap-4 mb-8">
               <Link href="https://www.linkedin.com/in/charlie-%C3%A5lander-42871a291/" target="_blank" rel="noopener noreferrer"
