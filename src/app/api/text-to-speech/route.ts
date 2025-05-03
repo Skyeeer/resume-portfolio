@@ -6,11 +6,6 @@ interface TTSRequest {
     voice?: string;
 }
 
-// Initialize OpenAI with API key from environment variables
-const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
-});
-
 export async function POST(request: Request) {
     try {
         // Check if the API key is set
@@ -21,6 +16,11 @@ export async function POST(request: Request) {
                 { status: 500 }
             );
         }
+
+        // Initialize OpenAI with API key inside the function
+        const openai = new OpenAI({
+            apiKey: process.env.OPENAI_API_KEY,
+        });
 
         // Parse the incoming request
         const { text, voice = 'alloy' } = await request.json() as TTSRequest;

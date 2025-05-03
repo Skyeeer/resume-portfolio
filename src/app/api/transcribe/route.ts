@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server';
 import OpenAI from 'openai';
 
-// Initialize OpenAI with API key from environment variables
-const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
-});
+// Remove the initialization at the module level
+// const openai = new OpenAI({
+//    apiKey: process.env.OPENAI_API_KEY,
+// });
 
 export async function POST(request: Request) {
     try {
@@ -16,6 +16,11 @@ export async function POST(request: Request) {
                 { status: 500 }
             );
         }
+
+        // Initialize OpenAI with API key inside the function
+        const openai = new OpenAI({
+            apiKey: process.env.OPENAI_API_KEY,
+        });
 
         // Get the form data with the audio file
         const formData = await request.formData();
