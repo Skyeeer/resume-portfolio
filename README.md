@@ -1,6 +1,46 @@
-# Portfolio & AI Translator
+# Portfolio Website
 
-Welcome to my portfolio website! This site showcases my skills as a developer, featuring an AI-powered live translator as the main project.
+This is a personal portfolio website showcasing your skills and projects, featuring an AI-powered translator application.
+
+## Personalization Instructions
+
+To personalize this portfolio for your own use, please follow these steps:
+
+### 1. Update Profile Information
+
+1. In `src/app/page.tsx`:
+   - Replace "Your Name" with your actual name
+   - Update the professional description
+   - Change social media links (LinkedIn, Email, GitHub)
+
+2. In `src/app/layout.tsx`:
+   - Update the title and description metadata with your name and information
+
+### 2. Add Profile Image
+
+1. Add a profile image:
+   - Place your profile photo in the `public` folder named `profile.jpg`
+   - Recommended: Use a square image with dimensions at least 500x500px
+
+2. Add a translator preview image:
+   - Place a screenshot of your translator app in the `public` folder named `translator-preview.jpg`
+   - Recommended: Use a 16:9 aspect ratio image
+
+### 3. Customize Skills Section
+
+In `src/app/page.tsx`, update the "Technical Skills" section to accurately reflect your personal skills and expertise.
+
+## Running the Application
+
+```bash
+# Install dependencies
+npm install
+
+# Run the development server
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
 ## Live Translator
 
