@@ -111,10 +111,18 @@ export function SpeechToText({
             });
 
             if (!getUrlResponse.ok) {
-                throw new Error("Failed to get upload URL");
+                const errorData = await getUrlResponse.json().catch(() => ({}));
+                console.error("Failed to get upload URL:", getUrlResponse.status, errorData);
+                throw new Error(`Failed to get upload URL: ${errorData.details || errorData.error || getUrlResponse.statusText}`);
             }
 
             const { uploadUrl, fileKey } = await getUrlResponse.json();
+
+            if (!uploadUrl || !fileKey) {
+                console.error("Invalid response from get-upload-url:", { uploadUrl, fileKey });
+                throw new Error("Invalid response from server when requesting upload URL");
+            }
+
             console.log(`Got S3 upload URL for file: ${fileKey}`);
 
             // Step 2: Upload the audio file directly to S3
@@ -128,7 +136,8 @@ export function SpeechToText({
             });
 
             if (!uploadResponse.ok) {
-                throw new Error("Failed to upload audio to S3");
+                console.error("S3 upload failed:", uploadResponse.status, uploadResponse.statusText);
+                throw new Error(`Failed to upload audio to S3: ${uploadResponse.statusText}`);
             }
 
             console.log("Audio uploaded to S3 successfully");
@@ -146,7 +155,9 @@ export function SpeechToText({
             });
 
             if (!transcriptionResponse.ok) {
-                throw new Error("Failed to transcribe audio from S3");
+                const errorData = await transcriptionResponse.json().catch(() => ({}));
+                console.error("Transcription failed:", transcriptionResponse.status, errorData);
+                throw new Error(`Failed to transcribe audio from S3: ${errorData.details || errorData.error || transcriptionResponse.statusText}`);
             }
 
             const data = await transcriptionResponse.json();
@@ -154,7 +165,7 @@ export function SpeechToText({
             onTranscriptionComplete(data.text);
         } catch (error) {
             console.error("Error transcribing audio:", error);
-            alert("An error occurred while transcribing your audio.");
+            alert(`An error occurred while transcribing your audio: ${error instanceof Error ? error.message : 'Unknown error'}`);
         } finally {
             setIsProcessing(false);
         }
