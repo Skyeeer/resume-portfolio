@@ -87,9 +87,13 @@ export function SpeechToText({
         try {
             console.log("Starting transcription...");
 
-            // Create form data with the audio file
+            // Convert to MP3 format for better compatibility with OpenAI
+            // Create form data with the audio file - use MP3 mime type for better compatibility
             const formData = new FormData();
-            formData.append("file", audioBlob, "audio.webm");
+
+            // Create a new blob with explicit MP3 mime type
+            const mp3Blob = new Blob([audioBlob], { type: 'audio/mp3' });
+            formData.append("file", mp3Blob, "audio.mp3");
 
             // Call the transcription API
             const response = await fetch("/api/transcribe", {
