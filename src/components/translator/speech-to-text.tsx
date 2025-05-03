@@ -87,18 +87,30 @@ export function SpeechToText({
         try {
             console.log("Starting transcription...");
 
-            // Convert to MP3 format for better compatibility with OpenAI
-            // Create form data with the audio file - use MP3 mime type for better compatibility
-            const formData = new FormData();
+            // Convert blob to base64 in a way that works for binary data
+            const reader = new FileReader();
+            const audioBase64Promise = new Promise<string>((resolve) => {
+                reader.onloadend = () => {
+                    // FileReader result is a data URL like "data:audio/webm;base64,<actual-base64>"
+                    // We need to extract just the base64 part
+                    const base64 = reader.result?.toString().split(',')[1] || '';
+                    resolve(base64);
+                };
+                reader.readAsDataURL(audioBlob);
+            });
 
-            // Create a new blob with explicit MP3 mime type
-            const mp3Blob = new Blob([audioBlob], { type: 'audio/mp3' });
-            formData.append("file", mp3Blob, "audio.mp3");
+            const base64Audio = await audioBase64Promise;
 
-            // Call the transcription API
+            // Send as JSON with base64-encoded audio
             const response = await fetch("/api/transcribe", {
                 method: "POST",
-                body: formData,
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    audio: base64Audio,
+                    mimeType: audioBlob.type,
+                }),
             });
 
             if (!response.ok) {
@@ -111,6 +123,8 @@ export function SpeechToText({
         } catch (error) {
             console.error("Error transcribing audio:", error);
             alert("An error occurred while transcribing your audio.");
+        } finally {
+            setIsProcessing(false);
         }
     };
 

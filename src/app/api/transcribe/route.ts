@@ -1,5 +1,14 @@
 import { NextResponse } from 'next/server';
 import OpenAI from 'openai';
+import * as fs from 'fs';
+import * as path from 'path';
+import * as os from 'os';
+
+// Define the request interface
+interface TranscriptionRequest {
+    audio: string; // base64-encoded audio 
+    mimeType: string;
+}
 
 // Function to handle Fetch API's FormData and File/Blob in Node.js environment
 function isRunningOnServerless() {
@@ -29,32 +38,42 @@ export async function POST(request: Request) {
             apiKey: process.env.OPENAI_API_KEY,
         });
 
-        // Get the form data with the audio file
-        const formData = await request.formData();
-        const audioFile = formData.get('file') as File;
+        // Get the JSON data with base64 audio
+        const { audio, mimeType } = await request.json() as TranscriptionRequest;
 
-        if (!audioFile) {
+        if (!audio) {
             return NextResponse.json(
-                { error: 'No audio file provided' },
+                { error: 'No audio provided' },
                 { status: 400 }
             );
         }
 
-        console.log(`Received audio file: ${audioFile.name}, size: ${audioFile.size} bytes, type: ${audioFile.type}`);
+        console.log(`Received base64 audio data, mime type: ${mimeType}`);
 
         try {
-            // Convert audio to ArrayBuffer for OpenAI API
-            const audioArrayBuffer = await audioFile.arrayBuffer();
+            // Create a temporary file to store the audio
+            // This is necessary because OpenAI's API requires a file or file path
+            const tempDir = os.tmpdir();
+            const fileExt = mimeType.split('/')[1] || 'webm';
+            const tempFilePath = path.join(tempDir, `audio-${Date.now()}.${fileExt}`);
 
+            // Decode base64 data and write to file
+            const buffer = Buffer.from(audio, 'base64');
+            fs.writeFileSync(tempFilePath, buffer);
+
+            console.log(`Temporary file created at: ${tempFilePath}`);
             console.log("Sending audio to OpenAI Whisper API...");
 
-            // Try using the original file directly instead of recreating it
+            // Use a file stream for the API request
             const transcription = await openai.audio.transcriptions.create({
-                file: audioFile,
+                file: fs.createReadStream(tempFilePath),
                 model: 'whisper-1',
                 language: 'en',
                 temperature: 0.2,
             });
+
+            // Clean up the temporary file
+            fs.unlinkSync(tempFilePath);
 
             console.log("Transcription received:", transcription.text);
 
