@@ -19,6 +19,9 @@ export function SpeechToText({
     const mediaRecorderRef = useRef<MediaRecorder | null>(null);
     const audioChunksRef = useRef<Blob[]>([]);
 
+    // File size limit in bytes (3MB as a safe limit for base64 encoding)
+    const MAX_AUDIO_SIZE_BYTES = 3 * 1024 * 1024;
+
     const startRecording = async () => {
         audioChunksRef.current = [];
 
@@ -86,6 +89,14 @@ export function SpeechToText({
 
         try {
             console.log("Starting transcription...");
+
+            // Check file size before proceeding
+            if (audioBlob.size > MAX_AUDIO_SIZE_BYTES) {
+                console.error(`Audio file too large: ${(audioBlob.size / (1024 * 1024)).toFixed(2)}MB exceeds limit of ${(MAX_AUDIO_SIZE_BYTES / (1024 * 1024))}MB`);
+                alert(`Audio file is too large (${(audioBlob.size / (1024 * 1024)).toFixed(2)}MB). Please keep recordings under ${(MAX_AUDIO_SIZE_BYTES / (1024 * 1024))}MB or record a shorter message.`);
+                setIsProcessing(false);
+                return;
+            }
 
             // Convert blob to base64 in a way that works for binary data
             const reader = new FileReader();

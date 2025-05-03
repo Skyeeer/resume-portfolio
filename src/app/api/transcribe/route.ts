@@ -33,53 +33,96 @@ export async function POST(request: Request) {
             );
         }
 
+        console.log("Transcribe API: Starting process");
+
         // Initialize OpenAI with API key inside the function
         const openai = new OpenAI({
             apiKey: process.env.OPENAI_API_KEY,
         });
 
         // Get the JSON data with base64 audio
-        const { audio, mimeType } = await request.json() as TranscriptionRequest;
+        const body = await request.json();
+        const { audio, mimeType } = body as TranscriptionRequest;
 
         if (!audio) {
+            console.error("No audio data provided");
             return NextResponse.json(
                 { error: 'No audio provided' },
                 { status: 400 }
             );
         }
 
-        console.log(`Received base64 audio data, mime type: ${mimeType}`);
+        console.log(`Received base64 audio data, type: ${mimeType}, length: ${audio.length} chars`);
 
         try {
-            // Create a temporary file to store the audio
-            // This is necessary because OpenAI's API requires a file or file path
+            // Generate a unique filename
             const tempDir = os.tmpdir();
             const fileExt = mimeType.split('/')[1] || 'webm';
-            const tempFilePath = path.join(tempDir, `audio-${Date.now()}.${fileExt}`);
+            const filename = `audio-${Date.now()}.${fileExt}`;
+            const tempFilePath = path.join(tempDir, filename);
 
-            // Decode base64 data and write to file
-            const buffer = Buffer.from(audio, 'base64');
-            fs.writeFileSync(tempFilePath, buffer);
+            // Log the path we're using
+            console.log(`Using temporary file path: ${tempFilePath}`);
 
-            console.log(`Temporary file created at: ${tempFilePath}`);
-            console.log("Sending audio to OpenAI Whisper API...");
+            try {
+                // Attempt file system operations with extensive error handling
+                // Decode base64 data and write to file
+                const buffer = Buffer.from(audio, 'base64');
+                console.log(`Decoded buffer size: ${buffer.length} bytes`);
 
-            // Use a file stream for the API request
-            const transcription = await openai.audio.transcriptions.create({
-                file: fs.createReadStream(tempFilePath),
-                model: 'whisper-1',
-                language: 'en',
-                temperature: 0.2,
-            });
+                fs.writeFileSync(tempFilePath, buffer);
+                console.log(`Temporary file created: ${tempFilePath}, size: ${fs.statSync(tempFilePath).size} bytes`);
 
-            // Clean up the temporary file
-            fs.unlinkSync(tempFilePath);
+                // Create a ReadStream for the file
+                const fileStream = fs.createReadStream(tempFilePath);
 
-            console.log("Transcription received:", transcription.text);
+                console.log("Sending audio to OpenAI Whisper API using file method...");
 
-            // Return the transcribed text
-            return NextResponse.json({ text: transcription.text });
+                // Use a file stream for the API request
+                const transcription = await openai.audio.transcriptions.create({
+                    file: fileStream,
+                    model: 'whisper-1',
+                    language: 'en',
+                    temperature: 0.2,
+                });
 
+                // Clean up the temporary file
+                try {
+                    fs.unlinkSync(tempFilePath);
+                    console.log("Removed temporary file");
+                } catch (cleanupError) {
+                    console.log("Warning: Failed to remove temporary file:", cleanupError);
+                    // Continue despite cleanup error
+                }
+
+                console.log("Transcription received:", transcription.text);
+
+                // Return the transcribed text
+                return NextResponse.json({ text: transcription.text });
+            } catch (fsError) {
+                // If file system operations fail, try direct buffer method
+                console.log("File system operations failed, trying direct buffer method:", fsError);
+
+                // Fallback to using buffer directly with OpenAI
+                const buffer = Buffer.from(audio, 'base64');
+
+                // Create a proper File object for OpenAI API
+                const file = new File([buffer], filename, { type: mimeType });
+
+                console.log("Sending audio to OpenAI Whisper API using buffer method...");
+
+                const transcription = await openai.audio.transcriptions.create({
+                    file: file,
+                    model: 'whisper-1',
+                    language: 'en',
+                    temperature: 0.2,
+                });
+
+                console.log("Transcription received (buffer method):", transcription.text);
+
+                // Return the transcribed text
+                return NextResponse.json({ text: transcription.text });
+            }
         } catch (openaiError: any) {
             console.error("OpenAI Whisper API error:", JSON.stringify({
                 message: openaiError.message,
