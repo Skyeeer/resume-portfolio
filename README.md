@@ -1,12 +1,16 @@
-# Portfolio & AI Translator
+# Charlie Ålander's Portfolio
 
-Welcome to my portfolio website! This site showcases my skills as a developer, featuring an AI-powered live translator as the main project.
+A modern portfolio website showcasing my software development skills, featuring an AI-powered real-time translator application.
 
 ## Live Translator
 
+### Breaking Language Barriers in Real-Time
+
+The Live Translator is a powerful AI application designed to facilitate seamless communication between people who don't share a common language. Whether you're traveling abroad, collaborating with international colleagues, or connecting with people from different cultures, this tool removes language barriers instantly.
+
 ### What It Does
 
-The Live Translator is an AI-powered application that:
+The Live Translator:
 
 - Records your voice in any language
 - Automatically transcribes what you said
@@ -14,7 +18,15 @@ The Live Translator is an AI-powered application that:
 - Speaks the translation aloud
 - Keeps a history of your conversation
 
-Try asking "Where is the nearest coffee shop?" in any language, and it will translate and speak the answer in your selected target language!
+With this tool, you can have natural conversations with anyone, regardless of linguistic differences. Simply speak in your native language, and the other person will hear your words in their preferred language.
+
+### Real-World Applications
+
+- **International Travel**: Navigate foreign countries with confidence
+- **Business Meetings**: Communicate effectively with international partners
+- **Education**: Learn pronunciation and practice language skills
+- **Customer Service**: Assist customers who speak different languages
+- **Cultural Exchange**: Connect with people across language barriers
 
 ### How It Works
 
@@ -22,37 +34,24 @@ Try asking "Where is the nearest coffee shop?" in any language, and it will tran
 
 2. **Language Detection**: The app automatically detects which language you're speaking.
 
-3. **Translation**: Your words are translated to your chosen language using Google Cloud's Translation API.
+3. **Translation**: Your words are translated to your chosen language using Google Cloud Translation API, providing high-quality translations across a wide range of languages.
 
 4. **Text-to-Speech**: The translated text is converted back to speech using OpenAI's text-to-speech models, so you can hear how it sounds.
 
 ### Technologies Used
 
-This full-stack application showcases my ability to integrate multiple modern technologies:
+This full-stack application is built with a modern tech stack:
 
-- **Frontend**: Next.js 14, React, TypeScript, Tailwind CSS, shadcn/ui
-- **APIs**: OpenAI (for speech recognition and text-to-speech), Google Cloud Translation
+- **Frontend**: Next.js 14, React, TypeScript, Tailwind CSS
+- **APIs**: OpenAI (for speech recognition and text-to-speech), Google Cloud Translation (for translating between languages)
 - **Infrastructure**: AWS Amplify for cloud hosting
 - **State Management**: React Hooks and Context
 - **Persistence**: Local storage for saving conversations
 
-### What Makes It Special
+## About Me
 
-- **Real-time processing**: Fast, responsive translations
-- **Cross-language communication**: Break down language barriers instantly
-- **Accessible interface**: Clean, intuitive design
-- **Persistent memory**: Conversations are saved between sessions
-
-## About This Portfolio
-
-This portfolio site is designed to showcase my skills as a developer. The AI translator demonstrates my ability to:
-
-- Build modern, responsive web applications
-- Integrate with complex third-party APIs
-- Implement cloud-based solutions
-- Create intuitive user experiences
-- Apply best practices in React and TypeScript development
+I'm a software developer specializing in AI solutions, with expertise in frontend and backend development, cloud infrastructure, and artificial intelligence integration. My goal is to create applications that solve real-world problems and improve human interaction through technology.
 
 ---
 
-*More projects and information about me will be added to this portfolio soon!*
+_This portfolio is continuously evolving as I add new projects and improve existing ones._
