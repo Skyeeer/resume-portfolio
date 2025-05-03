@@ -36,20 +36,56 @@ export async function POST(request: Request) {
         try {
             // Use OpenAI's Whisper API for transcription
             console.log("Sending audio to OpenAI Whisper API...");
-            const transcription = await openai.audio.transcriptions.create({
-                file: new File([buffer], audioFile.name, { type: audioFile.type }),
-                model: 'whisper-1',
-                language: 'en', // Optional: force English recognition
-                prompt: "The audio may start mid-sentence. Complete sentences are preferred.", // Help with partial sentences
-                temperature: 0.2, // Lower temperature for more accurate transcription
-            });
 
-            console.log("Transcription received:", transcription.text);
+            try {
+                // Method 1: Using File API (works in standard environments)
+                const audioBlob = new Blob([buffer], { type: audioFile.type });
+                const fileToUpload = new File([audioBlob], audioFile.name, { type: audioFile.type });
 
-            // Return the transcribed text
-            return NextResponse.json({ text: transcription.text });
+                const transcription = await openai.audio.transcriptions.create({
+                    file: fileToUpload,
+                    model: 'whisper-1',
+                    language: 'en', // Optional: force English recognition
+                    prompt: "The audio may start mid-sentence. Complete sentences are preferred.", // Help with partial sentences
+                    temperature: 0.2, // Lower temperature for more accurate transcription
+                });
+
+                console.log("Transcription received:", transcription.text);
+
+                // Return the transcribed text
+                return NextResponse.json({ text: transcription.text });
+            } catch (error: any) {
+                console.error("File API method failed, trying alternative method:", error.message);
+
+                // Method 2: Alternative approach for serverless environments
+                // Use the Node.js File System instead of the browser File API
+                const fs = require('fs');
+                const os = require('os');
+                const path = require('path');
+
+                // Create a temporary file
+                const tempFilePath = path.join(os.tmpdir(), `audio-${Date.now()}.${audioFile.type.split('/')[1] || 'webm'}`);
+                fs.writeFileSync(tempFilePath, buffer);
+
+                // Use the file path for transcription
+                const transcription = await openai.audio.transcriptions.create({
+                    file: fs.createReadStream(tempFilePath),
+                    model: 'whisper-1',
+                    language: 'en',
+                    prompt: "The audio may start mid-sentence. Complete sentences are preferred.",
+                    temperature: 0.2,
+                });
+
+                // Clean up temporary file
+                fs.unlinkSync(tempFilePath);
+
+                console.log("Transcription received (alternative method):", transcription.text);
+
+                // Return the transcribed text
+                return NextResponse.json({ text: transcription.text });
+            }
         } catch (openaiError: any) {
-            console.error("OpenAI Whisper API error:", openaiError);
+            console.error("OpenAI Whisper API error:", JSON.stringify({ message: openaiError.message, status: openaiError.status, type: openaiError.type, code: openaiError.code, param: openaiError.param }, null, 2));
             return NextResponse.json(
                 {
                     error: 'OpenAI Whisper API error',
