@@ -13,7 +13,6 @@ import {
     type CarouselApi
 } from "@/components/ui/carousel";
 import { Card } from "@/components/ui/card";
-import { recordProjectClick, recordSectionView } from "@/lib/analytics";
 
 export function FeaturedProjects() {
     const [activeSlide, setActiveSlide] = useState(0);
@@ -32,20 +31,6 @@ export function FeaturedProjects() {
             api.off("select", onSelect);
         };
     }, [api]);
-
-    // Add a useEffect to track section view
-    useEffect(() => {
-        // Small delay to ensure analytics is loaded
-        const timer = setTimeout(() => {
-            try {
-                recordSectionView('featured-projects');
-            } catch (e) {
-                // Silently fail
-            }
-        }, 1000);
-
-        return () => clearTimeout(timer);
-    }, []);
 
     return (
         <div className="container max-w-6xl mx-auto">
@@ -73,13 +58,6 @@ export function FeaturedProjects() {
                                     <Link
                                         href="/translator"
                                         className="px-4 sm:px-6 py-2 sm:py-3 bg-secondary text-secondary-foreground rounded-md font-medium hover:bg-secondary/90 transition-colors shadow-md text-center"
-                                        onClick={() => {
-                                            try {
-                                                recordProjectClick('translator');
-                                            } catch (e) {
-                                                // Silently fail
-                                            }
-                                        }}
                                     >
                                         Try It Now
                                     </Link>
@@ -199,13 +177,6 @@ export function FeaturedProjects() {
                                     <Link
                                         href="/stonks"
                                         className="px-4 sm:px-6 py-2 sm:py-3 bg-[#0ea5e9] text-white rounded-md font-medium hover:opacity-90 transition-colors text-center"
-                                        onClick={() => {
-                                            try {
-                                                recordProjectClick('stonks');
-                                            } catch (e) {
-                                                // Silently fail
-                                            }
-                                        }}
                                     >
                                         Try It Now
                                     </Link>
