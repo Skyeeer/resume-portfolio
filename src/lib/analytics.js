@@ -1,72 +1,108 @@
-// Import aws-exports from the same directory
-import awsconfig from './aws-exports';
+'use client';
 
-// Only import and initialize Amplify on the client side
-let Analytics = null;
-let Amplify = null;
-
-// Check if we're running on the browser
-if (typeof window !== 'undefined') {
-    // Dynamically import Amplify and Analytics on client side only
-    const amplifyImport = require('aws-amplify');
-    Amplify = amplifyImport.Amplify;
-    Analytics = amplifyImport.Analytics;
-
-    // Initialize Amplify
-    Amplify.configure(awsconfig);
-
-    // Configure Analytics category
-    Analytics.configure({
-        // OPTIONAL - disable Analytics if true
-        disabled: false,
-        // OPTIONAL - Allow recording session events. Default is true.
-        autoSessionRecord: true,
-    });
-}
-
-// Function to record page views
-export const recordPageView = (pageName) => {
-    if (!Analytics) return;
-
-    Analytics.record({
-        name: 'pageView',
-        attributes: { pageName }
-    });
+// Empty placeholder functions for when analytics is disabled or not available
+const noopAnalytics = {
+    recordPageView: () => { },
+    recordProjectClick: () => { },
+    recordSectionView: () => { },
+    recordCustomEvent: () => { },
+    flushEvents: () => { }
 };
 
-// Function to track clicks on project cards
-export const recordProjectClick = (projectName) => {
-    if (!Analytics) return;
+// If we're not in the browser, return no-op functions
+if (typeof window === 'undefined') {
+    module.exports = noopAnalytics;
+} else {
+    try {
+        // Dynamically import Amplify and Analytics
+        const { Amplify, Analytics } = require('aws-amplify');
 
-    Analytics.record({
-        name: 'projectClick',
-        attributes: { projectName }
-    });
-};
+        // Check if required environment variables are available
+        const hasRequiredEnvVars =
+            typeof process !== 'undefined' &&
+            process.env.NEXT_PUBLIC_COGNITO_IDENTITY_POOL_ID &&
+            process.env.NEXT_PUBLIC_PINPOINT_APP_ID;
 
-// Function to track section views
-export const recordSectionView = (sectionName) => {
-    if (!Analytics) return;
+        // Only initialize if we have the required configuration
+        if (hasRequiredEnvVars) {
+            // AWS config
+            const awsConfig = {
+                aws_project_region: process.env.NEXT_PUBLIC_AWS_REGION || 'eu-north-1',
+                aws_cognito_identity_pool_id: process.env.NEXT_PUBLIC_COGNITO_IDENTITY_POOL_ID,
+                aws_cognito_region: process.env.NEXT_PUBLIC_AWS_REGION || 'eu-north-1',
+                aws_mobile_analytics_app_id: process.env.NEXT_PUBLIC_PINPOINT_APP_ID,
+                aws_mobile_analytics_app_region: process.env.NEXT_PUBLIC_PINPOINT_REGION || 'eu-central-1'
+            };
 
-    Analytics.record({
-        name: 'sectionView',
-        attributes: { sectionName }
-    });
-};
+            // Initialize Amplify
+            Amplify.configure(awsConfig);
 
-// Function to manually record a custom event
-export const recordCustomEvent = (eventName, attributes) => {
-    if (!Analytics) return;
+            // Configure Analytics
+            Analytics.configure({
+                disabled: false,
+                autoSessionRecord: true,
+            });
 
-    Analytics.record({
-        name: eventName,
-        attributes
-    });
-};
+            // Export real analytics functions
+            module.exports = {
+                recordPageView: (pageName) => {
+                    try {
+                        Analytics.record({
+                            name: 'pageView',
+                            attributes: { pageName }
+                        });
+                    } catch (e) {
+                        console.warn('Failed to record page view:', e);
+                    }
+                },
 
-// Function to flush events immediately
-export const flushEvents = () => {
-    if (!Analytics) return;
+                recordProjectClick: (projectName) => {
+                    try {
+                        Analytics.record({
+                            name: 'projectClick',
+                            attributes: { projectName }
+                        });
+                    } catch (e) {
+                        console.warn('Failed to record project click:', e);
+                    }
+                },
 
-    Analytics.flush();
-}; 
+                recordSectionView: (sectionName) => {
+                    try {
+                        Analytics.record({
+                            name: 'sectionView',
+                            attributes: { sectionName }
+                        });
+                    } catch (e) {
+                        console.warn('Failed to record section view:', e);
+                    }
+                },
+
+                recordCustomEvent: (eventName, attributes) => {
+                    try {
+                        Analytics.record({
+                            name: eventName,
+                            attributes
+                        });
+                    } catch (e) {
+                        console.warn('Failed to record custom event:', e);
+                    }
+                },
+
+                flushEvents: () => {
+                    try {
+                        Analytics.flush();
+                    } catch (e) {
+                        console.warn('Failed to flush events:', e);
+                    }
+                }
+            };
+        } else {
+            console.warn('Analytics disabled: missing required environment variables');
+            module.exports = noopAnalytics;
+        }
+    } catch (e) {
+        console.warn('Failed to initialize analytics:', e);
+        module.exports = noopAnalytics;
+    }
+} 

@@ -10,8 +10,13 @@ export function AnalyticsProvider() {
     // Record page view when pathname changes
     useEffect(() => {
         if (pathname) {
-            // Record page view
-            recordPageView(pathname);
+            try {
+                // Record page view
+                recordPageView(pathname);
+            } catch (error) {
+                console.warn('Failed to record page view in AnalyticsProvider:', error);
+                // Silently fail
+            }
         }
     }, [pathname]);
 

@@ -1,5 +1,4 @@
 import type { NextConfig } from "next";
-import path from 'path';
 
 const nextConfig: NextConfig = {
   /* config options here */
@@ -26,16 +25,6 @@ const nextConfig: NextConfig = {
     NEXT_PUBLIC_PINPOINT_REGION: process.env.NEXT_PUBLIC_PINPOINT_REGION || 'eu-central-1',
     NEXT_PUBLIC_COGNITO_IDENTITY_POOL_ID: process.env.NEXT_PUBLIC_COGNITO_IDENTITY_POOL_ID || '',
     NEXT_PUBLIC_PINPOINT_APP_ID: process.env.NEXT_PUBLIC_PINPOINT_APP_ID || '',
-  },
-  webpack: (config, { isServer }) => {
-    // Resolve specific aliases
-    config.resolve.alias = {
-      ...config.resolve.alias,
-      '@/lib/analytics': path.resolve(__dirname, 'src/lib/analytics.js'),
-      'aws-exports': path.resolve(__dirname, 'src/lib/aws-exports.js'),
-    };
-
-    return config;
   },
 };
 
