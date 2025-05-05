@@ -1,0 +1,12 @@
+{
+  "version": "1",
+  "cognitoConfig": {
+    "identityPoolName": "resumeportfolio_identitypool_60f4eb17",
+    "allowUnauthenticatedIdentities": true,
+    "authSelections": "identityPoolOnly",
+    "resourceName": "resumeportfolio",
+    "sharedId": "60f4eb17",
+    "serviceName": "Cognito",
+    "useDefault": "manual"
+  }
+}

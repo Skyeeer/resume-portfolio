@@ -23,6 +23,11 @@
       "StackName": "amplify-resumeportfolio-env-29551",
       "StackId": "arn:aws:cloudformation:eu-north-1:509399592692:stack/amplify-resumeportfolio-env-29551/abb07c90-2845-11f0-9f5c-0e52f9aec411",
       "AmplifyAppId": "dj8xnctvhs8gv"
+    },
+    "categories": {
+      "auth": {
+        "resumeportfolio": {}
+      }
     }
   }
 }
