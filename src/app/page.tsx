@@ -21,7 +21,7 @@ export default function Home() {
               Fullstack Javascript Developer
             </p>
             <div className="flex gap-4 mb-8">
-              <Link href="https://www.linkedin.com/in/charlie-%C3%A5lander-42871a291/" target="_blank" rel="noopener noreferrer"
+              <Link href="https://www.linkedin.com/in/charlie-%C3%A5lander/" target="_blank" rel="noopener noreferrer"
                 className="p-3 rounded-full bg-secondary text-secondary-foreground hover:opacity-90 transition-opacity">
                 <FaLinkedin size={24} />
               </Link>
