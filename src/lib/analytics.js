@@ -30,7 +30,9 @@ if (typeof window !== 'undefined') {
             }
 
             // Dynamically import AWS Amplify using the import() function
-            const AWS = await import('aws-amplify');
+            const { Amplify, Analytics } = await import('aws-amplify');
+
+            console.log("Amplify version loaded:", Amplify.version || "unknown");
 
             // Create configuration with environment variables
             const config = {
@@ -48,13 +50,20 @@ if (typeof window !== 'undefined') {
                 }
             };
 
+            console.log("Configuring Amplify with:", JSON.stringify({
+                identityPoolId: process.env.NEXT_PUBLIC_COGNITO_IDENTITY_POOL_ID ? "exists" : "missing",
+                region: process.env.NEXT_PUBLIC_AWS_REGION || 'eu-north-1',
+                pinpointAppId: process.env.NEXT_PUBLIC_PINPOINT_APP_ID ? "exists" : "missing",
+                pinpointRegion: process.env.NEXT_PUBLIC_PINPOINT_REGION || 'eu-central-1'
+            }));
+
             // Configure Amplify
-            AWS.Amplify.configure(config);
+            Amplify.configure(config);
 
             // Override the no-op functions with real implementations
             analytics.recordPageView = (pageName) => {
                 try {
-                    AWS.Analytics.record({
+                    Analytics.record({
                         name: 'pageView',
                         attributes: { pageName }
                     });
@@ -65,7 +74,7 @@ if (typeof window !== 'undefined') {
 
             analytics.recordProjectClick = (projectName) => {
                 try {
-                    AWS.Analytics.record({
+                    Analytics.record({
                         name: 'projectClick',
                         attributes: { projectName }
                     });
@@ -76,7 +85,7 @@ if (typeof window !== 'undefined') {
 
             analytics.recordSectionView = (sectionName) => {
                 try {
-                    AWS.Analytics.record({
+                    Analytics.record({
                         name: 'sectionView',
                         attributes: { sectionName }
                     });
@@ -87,7 +96,7 @@ if (typeof window !== 'undefined') {
 
             analytics.recordCustomEvent = (eventName, attributes) => {
                 try {
-                    AWS.Analytics.record({
+                    Analytics.record({
                         name: eventName,
                         attributes
                     });
@@ -98,7 +107,7 @@ if (typeof window !== 'undefined') {
 
             analytics.flushEvents = () => {
                 try {
-                    AWS.Analytics.flush();
+                    Analytics.flush();
                 } catch (e) {
                     console.warn('Failed to flush events:', e);
                 }
