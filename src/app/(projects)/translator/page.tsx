@@ -2,10 +2,10 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { SpeechToText } from "../translator/components/speech-to-text";
-import { TextToSpeech } from "../translator/components/text-to-speech";
-import { TranslationChat } from "../translator/components/translation-chat";
-import { LanguageSelector } from "../translator/components/language-selector";
+import { SpeechToText } from "./components/speech-to-text";
+import { TextToSpeech } from "./components/text-to-speech";
+import { TranslationChat } from "./components/translation-chat";
+import { LanguageSelector } from "./components/language-selector";
 import { FaArrowLeft } from "react-icons/fa";
 
 // Types to track loading state more precisely
@@ -185,7 +185,7 @@ export default function TranslatorPage() {
             }
 
             // Make API request with faster quality setting
-            const response = await fetch("/projects/translator/api/translate", {
+            const response = await fetch("/translator/api/translate", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -247,7 +247,7 @@ export default function TranslatorPage() {
         }));
 
         try {
-            const response = await fetch("/projects/translator/api/text-to-speech", {
+            const response = await fetch("/translator/api/text-to-speech", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

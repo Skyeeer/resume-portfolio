@@ -34,7 +34,7 @@ export function TextTranslator({
         try {
             console.log(`Translating text to ${targetLanguage}:`, text.substring(0, 30));
 
-            const response = await fetch("/projects/translator/api/translate", {
+            const response = await fetch("/translator/api/translate", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

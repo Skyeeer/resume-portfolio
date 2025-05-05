@@ -122,7 +122,7 @@ export function SpeechToText({
 
             // Call the direct transcription API
             console.log("Sending audio directly to transcription API...");
-            const response = await fetch("/projects/translator/api/transcribe-direct", {
+            const response = await fetch("/translator/api/transcribe-direct", {
                 method: "POST",
                 body: formData,
             });

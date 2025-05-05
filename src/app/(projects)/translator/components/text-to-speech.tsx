@@ -24,7 +24,7 @@ export function TextToSpeech({ text, voice = 'alloy', quality = 'high' }: TextTo
         try {
             console.log("Requesting text-to-speech for:", { text, voice, quality });
 
-            const response = await fetch("/projects/translator/api/text-to-speech", {
+            const response = await fetch("/translator/api/text-to-speech", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

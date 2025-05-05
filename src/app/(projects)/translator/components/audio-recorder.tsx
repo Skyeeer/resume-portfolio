@@ -64,7 +64,7 @@ export function AudioRecorder({
             formData.append("file", audioBlob, "audio.wav");
 
             // First call the transcription API
-            const transcriptionResponse = await fetch("/projects/translator/api/transcribe-direct", {
+            const transcriptionResponse = await fetch("/translator/api/transcribe-direct", {
                 method: "POST",
                 body: formData,
             });
@@ -80,7 +80,7 @@ export function AudioRecorder({
             setMessages(prev => [...prev, { text: originalText, isTranslated: false }]);
 
             // Then call the translation API
-            const translationResponse = await fetch("/projects/translator/api/translate", {
+            const translationResponse = await fetch("/translator/api/translate", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -100,7 +100,7 @@ export function AudioRecorder({
 
             // Request text-to-speech for the translated text
             try {
-                const ttsResponse = await fetch("/projects/translator/api/text-to-speech", {
+                const ttsResponse = await fetch("/translator/api/text-to-speech", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
@@ -125,7 +125,6 @@ export function AudioRecorder({
                 console.error("Error with text-to-speech:", ttsError);
                 // Continue execution even if TTS fails
             }
-
         } catch (error) {
             console.error("Error processing audio:", error);
             alert("An error occurred while processing your audio.");
