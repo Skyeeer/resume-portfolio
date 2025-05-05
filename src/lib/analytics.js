@@ -1,4 +1,5 @@
-import awsconfig from '../aws-exports';
+// Import aws-exports from the same directory
+import awsconfig from './aws-exports';
 
 // Only import and initialize Amplify on the client side
 let Analytics = null;
