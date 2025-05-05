@@ -1,14 +1,67 @@
 import React from "react";
+import { FaLanguage } from "react-icons/fa";
 
 interface Message {
     text: string;
     isTranslated: boolean;
     detectedLanguage?: string;
+    targetLanguage?: string;
 }
 
 interface TranslationChatProps {
     messages: Message[];
     isProcessing: boolean;
+}
+
+// Helper function to get language name from code
+function getLanguageName(code?: string): string {
+    if (!code) return "Unknown";
+
+    // Clean the code by removing any "Original" or "Translated" suffixes
+    let cleanCode = code.toLowerCase();
+    cleanCode = cleanCode.replace(/original$/i, '').replace(/translated$/i, '');
+
+    const languageNames: Record<string, string> = {
+        "en": "English",
+        "es": "Spanish",
+        "fr": "French",
+        "de": "German",
+        "it": "Italian",
+        "pt": "Portuguese",
+        "nl": "Dutch",
+        "ru": "Russian",
+        "zh": "Chinese",
+        "ja": "Japanese",
+        "japanese": "Japanese",
+        "ko": "Korean",
+        "ar": "Arabic",
+        "hi": "Hindi",
+        "bn": "Bengali",
+        "ur": "Urdu",
+        "tr": "Turkish",
+        "pl": "Polish",
+        "uk": "Ukrainian",
+        "vi": "Vietnamese",
+        "vietnamese": "Vietnamese",
+        "th": "Thai",
+        "sv": "Swedish",
+        "swedish": "Swedish",
+        "no": "Norwegian",
+        "fi": "Finnish",
+        "da": "Danish",
+        "cs": "Czech",
+        "el": "Greek",
+        "he": "Hebrew",
+        "id": "Indonesian",
+        "ms": "Malay",
+        "fa": "Persian",
+        "ro": "Romanian",
+        "hu": "Hungarian",
+        "latin": "Latin",
+        // Add more as needed
+    };
+
+    return languageNames[cleanCode] || code;
 }
 
 export function TranslationChat({ messages, isProcessing }: TranslationChatProps) {
@@ -31,8 +84,14 @@ export function TranslationChat({ messages, isProcessing }: TranslationChatProps
                                 }`}
                         >
                             <p className="break-words">{message.text}</p>
-                            <div className="mt-1 text-xs text-muted-foreground flex justify-end">
-                                {message.isTranslated ? "Translated" : "Original"}
+                            <div className="mt-1 text-xs text-muted-foreground flex justify-start items-center">
+                                <span className="flex items-center gap-1">
+                                    <FaLanguage className="text-muted-foreground" />
+                                    {message.isTranslated
+                                        ? getLanguageName(message.targetLanguage)
+                                        : getLanguageName(message.detectedLanguage)
+                                    }
+                                </span>
                             </div>
                         </div>
                     ))}

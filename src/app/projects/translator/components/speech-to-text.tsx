@@ -5,15 +5,17 @@ import { Button } from "@/components/ui/button";
 import { FaMicrophone, FaStop } from "react-icons/fa";
 
 interface SpeechToTextProps {
-    onTranscriptionComplete: (text: string) => void;
+    onTranscriptionComplete: (text: string, detectedLanguage?: string) => void;
     isProcessing: boolean;
     setIsProcessing: (isProcessing: boolean) => void;
+    onTranscriptionStateChange?: (isTranscribing: boolean) => void;
 }
 
 export function SpeechToText({
     onTranscriptionComplete,
     isProcessing,
-    setIsProcessing
+    setIsProcessing,
+    onTranscriptionStateChange
 }: SpeechToTextProps) {
     const [isRecording, setIsRecording] = useState(false);
     const [isPreparing, setIsPreparing] = useState(false);
@@ -68,12 +70,18 @@ export function SpeechToText({
                 mediaRecorder.start();
                 setIsRecording(true);
                 setIsPreparing(false);
+                if (onTranscriptionStateChange) {
+                    onTranscriptionStateChange(true);
+                }
             }, 500);
 
         } catch (error) {
             console.error("Error accessing microphone:", error);
             alert("Error accessing microphone. Please make sure you have granted permission.");
             setIsPreparing(false);
+            if (onTranscriptionStateChange) {
+                onTranscriptionStateChange(false);
+            }
         }
     };
 
@@ -82,11 +90,17 @@ export function SpeechToText({
             console.log("Stopping recording...");
             mediaRecorderRef.current.stop();
             setIsRecording(false);
+            if (onTranscriptionStateChange) {
+                onTranscriptionStateChange(false);
+            }
         }
     };
 
     const transcribeAudio = async (audioBlob: Blob) => {
         setIsProcessing(true);
+        if (onTranscriptionStateChange) {
+            onTranscriptionStateChange(true);
+        }
 
         try {
             console.log("Starting transcription...");
@@ -96,6 +110,9 @@ export function SpeechToText({
                 console.error(`Audio file too large: ${(audioBlob.size / (1024 * 1024)).toFixed(2)}MB exceeds limit of ${(MAX_AUDIO_SIZE_BYTES / (1024 * 1024))}MB`);
                 alert(`Audio file is too large (${(audioBlob.size / (1024 * 1024)).toFixed(2)}MB). Please keep recordings under ${(MAX_AUDIO_SIZE_BYTES / (1024 * 1024))}MB or record a shorter message.`);
                 setIsProcessing(false);
+                if (onTranscriptionStateChange) {
+                    onTranscriptionStateChange(false);
+                }
                 return;
             }
 
@@ -105,7 +122,7 @@ export function SpeechToText({
 
             // Call the direct transcription API
             console.log("Sending audio directly to transcription API...");
-            const response = await fetch("/api/transcribe-direct", {
+            const response = await fetch("/projects/translator/api/transcribe-direct", {
                 method: "POST",
                 body: formData,
             });
@@ -117,13 +134,18 @@ export function SpeechToText({
             }
 
             const data = await response.json();
-            console.log("Transcription complete:", data.text);
-            onTranscriptionComplete(data.text);
+            console.log("Transcription complete:", data.text, "Language:", data.detectedLanguage);
+
+            // Pass both text and detected language to parent component
+            onTranscriptionComplete(data.text, data.detectedLanguage);
         } catch (error) {
             console.error("Error transcribing audio:", error);
             alert(`An error occurred while transcribing your audio: ${error instanceof Error ? error.message : 'Unknown error'}`);
         } finally {
             setIsProcessing(false);
+            if (onTranscriptionStateChange) {
+                onTranscriptionStateChange(false);
+            }
         }
     };
 

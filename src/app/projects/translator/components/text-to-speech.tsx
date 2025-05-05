@@ -6,9 +6,10 @@ import { FaPlay, FaStop, FaVolumeUp } from "react-icons/fa";
 interface TextToSpeechProps {
     text: string;
     voice?: string;
+    quality?: 'high' | 'medium' | 'low';
 }
 
-export function TextToSpeech({ text, voice = 'alloy' }: TextToSpeechProps) {
+export function TextToSpeech({ text, voice = 'alloy', quality = 'high' }: TextToSpeechProps) {
     const [isPlaying, setIsPlaying] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -21,14 +22,14 @@ export function TextToSpeech({ text, voice = 'alloy' }: TextToSpeechProps) {
         setError(null);
 
         try {
-            console.log("Requesting text-to-speech for:", { text, voice });
+            console.log("Requesting text-to-speech for:", { text, voice, quality });
 
-            const response = await fetch("/api/text-to-speech", {
+            const response = await fetch("/projects/translator/api/text-to-speech", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify({ text, voice }),
+                body: JSON.stringify({ text, voice, quality }),
             });
 
             if (!response.ok) {

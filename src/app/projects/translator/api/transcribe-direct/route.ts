@@ -36,14 +36,21 @@ export async function POST(request: Request) {
             const transcription = await openai.audio.transcriptions.create({
                 file: audioFile,
                 model: 'whisper-1',
-                language: 'en',
                 temperature: 0.2,
+                response_format: 'verbose_json',
             });
 
-            console.log("Transcription received:", transcription.text);
+            // Access language and text from the verbose response
+            const detectedLanguage = transcription.language;
+            const transcribedText = transcription.text;
 
-            // Return the transcribed text
-            return NextResponse.json({ text: transcription.text });
+            console.log(`Transcription received in ${detectedLanguage} language:`, transcribedText);
+
+            // Return the transcribed text and detected language
+            return NextResponse.json({
+                text: transcribedText,
+                detectedLanguage: detectedLanguage
+            });
         } catch (openaiError: any) {
             console.error("OpenAI Whisper API error:", JSON.stringify({
                 message: openaiError.message,

@@ -15,6 +15,12 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Charlie Ålander | Portfolio",
   description: "Personal portfolio showcasing my software development skills and projects",
+  icons: {
+    icon: [
+      { url: '/favicon.ico', sizes: '32x32' },
+    ],
+    apple: { url: '/apple-touch-icon.png', sizes: '180x180' },
+  },
 };
 
 export default function RootLayout({

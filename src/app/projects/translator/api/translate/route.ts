@@ -4,6 +4,7 @@ import { TranslationServiceClient } from '@google-cloud/translate';
 interface TranslateRequest {
     text: string;
     targetLanguage?: string;
+    fastMode?: boolean;
 }
 
 // Add debug logging when module loads
@@ -18,11 +19,12 @@ export async function POST(req: Request) {
     try {
         // Parse the incoming request
         const body = await req.json();
-        const { text, targetLanguage = 'es' } = body as TranslateRequest;
+        const { text, targetLanguage = 'es', fastMode = false } = body as TranslateRequest;
 
         console.log("TRANSLATE API RECEIVED REQUEST:", {
             text: text?.substring(0, 30),
             targetLanguage,
+            fastMode,
             rawBody: JSON.stringify(body).substring(0, 100)
         });
 
@@ -33,7 +35,7 @@ export async function POST(req: Request) {
             );
         }
 
-        console.log("API: Will translate to language:", targetLanguage);
+        console.log("API: Will translate to language:", targetLanguage, fastMode ? "(fast mode)" : "");
 
         // Check if Google credentials are configured
         const hasCredentialsFile = !!process.env.GOOGLE_APPLICATION_CREDENTIALS;
@@ -100,7 +102,17 @@ export async function POST(req: Request) {
                 contents: [text],
                 mimeType: 'text/plain',
                 targetLanguageCode: targetLanguage,
+                // Note: We can't specify model directly as it requires full resource name
+                // Use other performance optimizations instead
             };
+
+            // If fastMode is requested, we can modify the request to be simpler
+            // This might help with performance even without explicit model selection
+            if (fastMode) {
+                // No specific optimization available through API params,
+                // but we keep the flag for future use and for client awareness
+                console.log("Fast mode requested - using standard translation");
+            }
 
             console.log("API: FINAL TRANSLATION PARAMS:", JSON.stringify(translateParams));
 
@@ -137,7 +149,8 @@ export async function POST(req: Request) {
             return NextResponse.json({
                 translatedText,
                 detectedLanguage,
-                targetLanguage // Include the target language in the response for debugging
+                targetLanguage, // Include the target language in the response for debugging
+                fastMode // Include whether fast mode was used
             });
 
         } catch (translateError: any) {

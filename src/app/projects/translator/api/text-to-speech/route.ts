@@ -4,6 +4,7 @@ import OpenAI from 'openai';
 interface TTSRequest {
     text: string;
     voice?: string;
+    quality?: 'high' | 'medium' | 'low';
 }
 
 export async function POST(request: Request) {
@@ -23,7 +24,7 @@ export async function POST(request: Request) {
         });
 
         // Parse the incoming request
-        const { text, voice = 'alloy' } = await request.json() as TTSRequest;
+        const { text, voice = 'alloy', quality = 'high' } = await request.json() as TTSRequest;
 
         if (!text) {
             return NextResponse.json(
@@ -32,14 +33,34 @@ export async function POST(request: Request) {
             );
         }
 
-        console.log("TTS request for:", { text: text.substring(0, 50) + (text.length > 50 ? '...' : ''), voice });
+        console.log("TTS request for:", {
+            text: text.substring(0, 50) + (text.length > 50 ? '...' : ''),
+            voice,
+            quality
+        });
+
+        // Select model based on quality setting
+        let model = 'tts-1';
+        if (quality === 'high') {
+            model = 'tts-1-hd';
+        } else if (quality === 'low') {
+            // Use the fastest setting with tts-1
+            model = 'tts-1';
+        } else {
+            // Medium is the default
+            model = 'tts-1';
+        }
 
         // Use OpenAI's TTS API
         try {
             const audioResponse = await openai.audio.speech.create({
-                model: 'tts-1',
+                model,
                 voice,
                 input: text,
+                // Add response format for faster output if needed
+                response_format: quality === 'low' ? 'mp3' : 'mp3',
+                // Lower speed for lower quality settings
+                speed: quality === 'low' ? 1.5 : 1.0,
             });
 
             console.log("TTS response received, converting to buffer");
