@@ -1,9 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { initializeApp, FirebaseOptions, getApps } from 'firebase/app';
-import { getAnalytics, logEvent, isSupported, setAnalyticsCollectionEnabled } from 'firebase/analytics';
+import { getAnalytics, logEvent, isSupported, setAnalyticsCollectionEnabled, Analytics } from 'firebase/analytics';
 
 // Get Firebase config from environment variables
 const getFirebaseConfig = (): FirebaseOptions | null => {
@@ -12,7 +12,10 @@ const getFirebaseConfig = (): FirebaseOptions | null => {
         try {
             return JSON.parse(fullConfig);
         } catch (error) {
-            console.error('Failed to parse NEXT_PUBLIC_FIREBASE_CONFIG:', error);
+            // Silent error in production
+            if (process.env.NODE_ENV !== 'production') {
+                console.error('Failed to parse NEXT_PUBLIC_FIREBASE_CONFIG:', error);
+            }
         }
     }
 
@@ -29,12 +32,37 @@ const getFirebaseConfig = (): FirebaseOptions | null => {
         };
     }
 
+    // No fallback - if environment variables aren't found, return null
+    if (process.env.NODE_ENV !== 'production') {
+        console.warn('Firebase configuration missing. Analytics will be disabled.');
+    }
     return null;
 };
 
+// Helper to get page name from path
+const getPageNameFromPath = (path: string): string => {
+    // Remove leading slash and query parameters
+    const cleanPath = path.split('?')[0].replace(/^\/+/, '');
+
+    if (cleanPath === '') return 'Home';
+
+    // Handle special routes
+    if (cleanPath === 'translator') return 'Translator';
+    if (cleanPath === 'stonks') return 'Stock Dashboard';
+
+    // Convert path to title case for other routes
+    return cleanPath.split('/').map(segment =>
+        segment.charAt(0).toUpperCase() + segment.slice(1)
+    ).join(' - ');
+};
+
+// We only want to initialize Firebase once
+let analyticsInstance: Analytics | null = null;
+
 export function FirebaseAnalytics() {
     const pathname = usePathname();
-    const [analyticsInitialized, setAnalyticsInitialized] = useState(false);
+    const searchParams = useSearchParams();
+    const [initialized, setInitialized] = useState(false);
 
     // Initialize Firebase only once
     useEffect(() => {
@@ -44,25 +72,46 @@ export function FirebaseAnalytics() {
 
         const initializeAnalytics = async () => {
             try {
-                if (await isSupported()) {
-                    const firebaseConfig = getFirebaseConfig();
-                    if (!firebaseConfig) return;
-
-                    // Avoid initializing Firebase multiple times
-                    let app;
-                    if (getApps().length === 0) {
-                        app = initializeApp(firebaseConfig);
-                    } else {
-                        app = getApps()[0];
-                    }
-
-                    const analytics = getAnalytics(app);
-                    setAnalyticsCollectionEnabled(analytics, true);
-                    console.log('Firebase Analytics initialized');
-                    setAnalyticsInitialized(true);
+                // Skip initialization if we've already done it
+                if (analyticsInstance) {
+                    setInitialized(true);
+                    return;
                 }
+
+                // Check if analytics is supported
+                if (!(await isSupported())) {
+                    return;
+                }
+
+                const firebaseConfig = getFirebaseConfig();
+                if (!firebaseConfig) {
+                    // No config available, don't initialize
+                    return;
+                }
+
+                // Initialize Firebase if not already initialized
+                let app;
+                if (getApps().length === 0) {
+                    app = initializeApp(firebaseConfig);
+                } else {
+                    app = getApps()[0];
+                }
+
+                // Create analytics instance
+                analyticsInstance = getAnalytics(app);
+                setAnalyticsCollectionEnabled(analyticsInstance, true);
+
+                // Only log in development
+                if (process.env.NODE_ENV !== 'production') {
+                    console.log('Firebase Analytics initialized');
+                }
+
+                setInitialized(true);
             } catch (error) {
-                console.error('Error initializing Firebase Analytics:', error);
+                // Silent error in production
+                if (process.env.NODE_ENV !== 'production') {
+                    console.error('Error initializing Firebase Analytics:', error);
+                }
             }
         };
 
@@ -71,21 +120,44 @@ export function FirebaseAnalytics() {
 
     // Track page views when the pathname changes
     useEffect(() => {
-        if (!analyticsInitialized || !pathname || typeof window === 'undefined') {
+        if (!initialized || !pathname || typeof window === 'undefined' || !analyticsInstance) {
             return;
         }
 
         try {
-            const analytics = getAnalytics();
-            logEvent(analytics, 'page_view', {
-                page_path: pathname,
+            // Combine pathname and search params
+            const fullPath = searchParams?.toString()
+                ? `${pathname}?${searchParams.toString()}`
+                : pathname;
+
+            // Get a descriptive page name based on the current path
+            const pageName = getPageNameFromPath(pathname);
+
+            // Log the page view with all necessary information
+            logEvent(analyticsInstance, 'page_view', {
+                page_path: fullPath,
                 page_location: window.location.href,
-                page_title: document.title
+                page_title: pageName,
+                screen_name: pageName
             });
+
+            // Also send a separate screen_view event for better reporting
+            logEvent(analyticsInstance, 'screen_view', {
+                firebase_screen: pageName,
+                firebase_screen_class: pageName
+            });
+
+            // Only log in development
+            if (process.env.NODE_ENV !== 'production') {
+                console.log(`Analytics: tracked "${pageName}" page view`);
+            }
         } catch (error) {
-            console.error('Error logging page view:', error);
+            // Silent error in production
+            if (process.env.NODE_ENV !== 'production') {
+                console.error('Error logging page view:', error);
+            }
         }
-    }, [pathname, analyticsInitialized]);
+    }, [pathname, searchParams, initialized]);
 
     return null;
 } 
