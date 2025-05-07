@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import GoogleAnalytics from "@/components/google-analytics";
+import { FirebaseAnalytics } from "@/components/firebase-analytics";
 import { Suspense } from "react";
 
 const geistSans = Geist({
@@ -13,9 +13,6 @@ const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
 });
-
-// Get Google Analytics measurement ID from environment variable
-const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || '';
 
 export const metadata: Metadata = {
   title: "Charlie Ålander",
@@ -39,11 +36,9 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         {children}
-        {GA_MEASUREMENT_ID && (
-          <Suspense fallback={null}>
-            <GoogleAnalytics measurementId={GA_MEASUREMENT_ID} />
-          </Suspense>
-        )}
+        <Suspense fallback={null}>
+          <FirebaseAnalytics />
+        </Suspense>
       </body>
     </html>
   );
