@@ -10,17 +10,16 @@ const getFirebaseConfig = (): FirebaseOptions | null => {
     const fullConfig = process.env.NEXT_PUBLIC_FIREBASE_CONFIG;
     if (fullConfig) {
         try {
+            console.log("Firebase config found from NEXT_PUBLIC_FIREBASE_CONFIG");
             return JSON.parse(fullConfig);
         } catch (error) {
-            // Silent error in production
-            if (process.env.NODE_ENV !== 'production') {
-                console.error('Failed to parse NEXT_PUBLIC_FIREBASE_CONFIG:', error);
-            }
+            console.error('Failed to parse NEXT_PUBLIC_FIREBASE_CONFIG:', error);
         }
     }
 
     // Fall back to individual environment variables
     if (process.env.NEXT_PUBLIC_FIREBASE_API_KEY) {
+        console.log("Firebase config found from individual env variables");
         return {
             apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
             authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
@@ -33,9 +32,7 @@ const getFirebaseConfig = (): FirebaseOptions | null => {
     }
 
     // No fallback - if environment variables aren't found, return null
-    if (process.env.NODE_ENV !== 'production') {
-        console.warn('Firebase configuration missing. Analytics will be disabled.');
-    }
+    console.warn('Firebase configuration missing. Analytics will be disabled.');
     return null;
 };
 
@@ -67,6 +64,7 @@ export function FirebaseAnalytics() {
     // Initialize Firebase only once
     useEffect(() => {
         if (typeof window === 'undefined') {
+            console.log("Firebase initialization skipped - server-side rendering");
             return;
         }
 
@@ -74,26 +72,33 @@ export function FirebaseAnalytics() {
             try {
                 // Skip initialization if we've already done it
                 if (analyticsInstance) {
+                    console.log("Firebase Analytics already initialized");
                     setInitialized(true);
                     return;
                 }
 
                 // Check if analytics is supported
-                if (!(await isSupported())) {
+                const supported = await isSupported();
+                if (!supported) {
+                    console.log("Firebase Analytics not supported in this environment");
                     return;
                 }
 
+                console.log("Firebase Analytics is supported");
+
                 const firebaseConfig = getFirebaseConfig();
                 if (!firebaseConfig) {
-                    // No config available, don't initialize
+                    console.log("No Firebase config available, analytics disabled");
                     return;
                 }
 
                 // Initialize Firebase if not already initialized
                 let app;
                 if (getApps().length === 0) {
+                    console.log("Initializing new Firebase app");
                     app = initializeApp(firebaseConfig);
                 } else {
+                    console.log("Using existing Firebase app");
                     app = getApps()[0];
                 }
 
@@ -101,17 +106,10 @@ export function FirebaseAnalytics() {
                 analyticsInstance = getAnalytics(app);
                 setAnalyticsCollectionEnabled(analyticsInstance, true);
 
-                // Only log in development
-                if (process.env.NODE_ENV !== 'production') {
-                    console.log('Firebase Analytics initialized');
-                }
-
+                console.log('Firebase Analytics initialized successfully');
                 setInitialized(true);
             } catch (error) {
-                // Silent error in production
-                if (process.env.NODE_ENV !== 'production') {
-                    console.error('Error initializing Firebase Analytics:', error);
-                }
+                console.error('Error initializing Firebase Analytics:', error);
             }
         };
 
@@ -147,15 +145,11 @@ export function FirebaseAnalytics() {
                 firebase_screen_class: pageName
             });
 
-            // Only log in development
             if (process.env.NODE_ENV !== 'production') {
                 console.log(`Analytics: tracked "${pageName}" page view`);
             }
         } catch (error) {
-            // Silent error in production
-            if (process.env.NODE_ENV !== 'production') {
-                console.error('Error logging page view:', error);
-            }
+            console.error('Error logging page view:', error);
         }
     }, [pathname, searchParams, initialized]);
 
