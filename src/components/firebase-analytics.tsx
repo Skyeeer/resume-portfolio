@@ -2,12 +2,11 @@
 
 import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
-import { initializeApp, FirebaseOptions } from 'firebase/app';
-import { getAnalytics, logEvent, isSupported } from 'firebase/analytics';
+import { initializeApp, FirebaseOptions, getApps } from 'firebase/app';
+import { getAnalytics, logEvent, isSupported, setAnalyticsCollectionEnabled } from 'firebase/analytics';
 
 // Get Firebase config from environment variables
 const getFirebaseConfig = (): FirebaseOptions | null => {
-    // First try to get the full config from a single environment variable
     const fullConfig = process.env.NEXT_PUBLIC_FIREBASE_CONFIG;
     if (fullConfig) {
         try {
@@ -37,29 +36,30 @@ export function FirebaseAnalytics() {
     const pathname = usePathname();
     const [analyticsInitialized, setAnalyticsInitialized] = useState(false);
 
+    // Initialize Firebase only once
     useEffect(() => {
+        if (typeof window === 'undefined') {
+            return;
+        }
+
         const initializeAnalytics = async () => {
             try {
-                // Get Firebase config
-                const firebaseConfig = getFirebaseConfig();
-
-                if (!firebaseConfig) {
-                    console.error('Firebase configuration not found in environment variables');
-                    return;
-                }
-
-                // Check if analytics is supported in the current environment
                 if (await isSupported()) {
-                    console.log('Firebase Analytics is supported in this environment');
+                    const firebaseConfig = getFirebaseConfig();
+                    if (!firebaseConfig) return;
 
-                    // Initialize Firebase
-                    const app = initializeApp(firebaseConfig);
+                    // Avoid initializing Firebase multiple times
+                    let app;
+                    if (getApps().length === 0) {
+                        app = initializeApp(firebaseConfig);
+                    } else {
+                        app = getApps()[0];
+                    }
+
                     const analytics = getAnalytics(app);
-
-                    console.log('Firebase Analytics initialized successfully');
+                    setAnalyticsCollectionEnabled(analytics, true);
+                    console.log('Firebase Analytics initialized');
                     setAnalyticsInitialized(true);
-                } else {
-                    console.warn('Firebase Analytics is not supported in this environment');
                 }
             } catch (error) {
                 console.error('Error initializing Firebase Analytics:', error);
@@ -71,21 +71,21 @@ export function FirebaseAnalytics() {
 
     // Track page views when the pathname changes
     useEffect(() => {
-        if (analyticsInitialized && pathname) {
-            try {
-                const analytics = getAnalytics();
-                console.log('Logging page_view event for:', pathname);
-                logEvent(analytics, 'page_view', {
-                    page_path: pathname,
-                    page_location: window.location.href,
-                    page_title: document.title
-                });
-            } catch (error) {
-                console.error('Error logging page view:', error);
-            }
+        if (!analyticsInitialized || !pathname || typeof window === 'undefined') {
+            return;
+        }
+
+        try {
+            const analytics = getAnalytics();
+            logEvent(analytics, 'page_view', {
+                page_path: pathname,
+                page_location: window.location.href,
+                page_title: document.title
+            });
+        } catch (error) {
+            console.error('Error logging page view:', error);
         }
     }, [pathname, analyticsInitialized]);
 
-    // This component doesn't render anything visible
     return null;
 } 
