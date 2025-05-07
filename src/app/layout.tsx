@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { FirebaseAnalytics } from "@/components/firebase-analytics";
+import { FirebaseDebug } from "@/components/firebase-debug";
 import { Suspense } from "react";
 
 const geistSans = Geist({
@@ -38,6 +39,7 @@ export default function RootLayout({
         {children}
         <Suspense fallback={null}>
           <FirebaseAnalytics />
+          <FirebaseDebug />
         </Suspense>
       </body>
     </html>
