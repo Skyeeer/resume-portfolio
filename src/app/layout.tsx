@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import GoogleAnalytics from "@/components/google-analytics";
+import { Analytics } from '@vercel/analytics/react';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -12,8 +14,11 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+// Get Google Analytics measurement ID from environment variable
+const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || '';
+
 export const metadata: Metadata = {
-  title: "Charlie Ålander | Portfolio",
+  title: "Charlie Ålander",
   description: "Personal portfolio showcasing my software development skills and projects",
   icons: {
     icon: [
@@ -34,6 +39,8 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         {children}
+        {GA_MEASUREMENT_ID && <GoogleAnalytics measurementId={GA_MEASUREMENT_ID} />}
+        <Analytics />
       </body>
     </html>
   );
