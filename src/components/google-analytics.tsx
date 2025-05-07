@@ -1,7 +1,7 @@
 'use client';
 
 import Script from 'next/script';
-import { usePathname, useSearchParams } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { useEffect } from 'react';
 
 // Add type declaration for gtag
@@ -22,15 +22,14 @@ export default function GoogleAnalytics({
     measurementId: string;
 }) {
     const pathname = usePathname();
-    const searchParams = useSearchParams();
 
     useEffect(() => {
         if (pathname && window.gtag) {
             window.gtag('config', measurementId, {
-                page_path: pathname + (searchParams?.toString() ? `?${searchParams.toString()}` : ''),
+                page_path: pathname,
             });
         }
-    }, [pathname, searchParams, measurementId]);
+    }, [pathname, measurementId]);
 
     return (
         <>
