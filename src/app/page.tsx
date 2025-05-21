@@ -1,9 +1,10 @@
 import Link from "next/link";
 import Image from "next/image";
-import { FaLinkedin, FaEnvelope, FaGithub } from "react-icons/fa";
+import { FaLinkedin, FaEnvelope, FaGithub, FaSteam } from "react-icons/fa";
 import { FeaturedProjects } from "@/components/featured-projects";
 import { AboutMe } from "@/components/about-me";
 import { SkillsSection } from "@/components/skills-section";
+import { ContactInfo } from "@/components/contact-info";
 
 export default function Home() {
   return (
@@ -20,7 +21,7 @@ export default function Home() {
             <p className="text-xl mb-6 text-foreground">
               Fullstack Javascript Developer
             </p>
-            <div className="flex gap-4 mb-8">
+            <div className="flex gap-4 flex-wrap mb-8">
               <Link href="https://www.linkedin.com/in/charlie-%C3%A5lander/" target="_blank" rel="noopener noreferrer"
                 className="p-3 rounded-full bg-secondary text-secondary-foreground hover:opacity-90 transition-opacity">
                 <FaLinkedin size={24} />
@@ -32,6 +33,10 @@ export default function Home() {
               <Link href="https://github.com/Skyeeer" target="_blank" rel="noopener noreferrer"
                 className="p-3 rounded-full bg-primary text-primary-foreground hover:opacity-90 transition-opacity">
                 <FaGithub size={24} />
+              </Link>
+              <Link href="https://steamcommunity.com/profiles/76561198143038556" target="_blank" rel="noopener noreferrer"
+                className="p-3 rounded-full bg-[#171a21] text-white hover:opacity-90 transition-opacity">
+                <FaSteam size={24} />
               </Link>
             </div>
           </div>
@@ -72,6 +77,11 @@ export default function Home() {
           </h2>
           <SkillsSection />
         </div>
+      </section>
+
+      {/* Contact Information Section */}
+      <section id="contact" className="py-28 px-6 md:px-12 bg-gradient-to-br from-accent/10 via-background to-primary/10">
+        <ContactInfo />
       </section>
     </main>
   );

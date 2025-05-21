@@ -20,7 +20,7 @@ export function SkillsSection() {
                     <span className="text-primary font-bold">AI</span>
                 </div>
                 <h3 className="font-bold mb-2 text-center">AI/ML</h3>
-                <p className="text-center text-sm text-muted-foreground">OpenAI, Language Processing, Speech Recognition</p>
+                <p className="text-center text-sm text-muted-foreground">OpenAI, Language Processing, Speech Recognition, Cursor</p>
             </div>
             <div className="bg-card p-6 rounded-xl shadow-md border border-secondary/20 hover:border-secondary/50 transition-colors">
                 <div className="w-12 h-12 bg-secondary/20 rounded-full flex items-center justify-center mb-4 mx-auto">

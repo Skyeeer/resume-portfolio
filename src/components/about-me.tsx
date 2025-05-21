@@ -5,7 +5,7 @@ import { useState, useEffect, useRef } from "react";
 export function AboutMe() {
     const [displayText, setDisplayText] = useState("");
     const [isVisible, setIsVisible] = useState(true);
-    const fullText = "Hello! I’m Charlie Ålander, a software developer with a passion for building intuitive and functional web applications. Recently, I’ve been building features and tools using React, Node.js, Firebase, AWS and RESTful APIs. I thrive in small teams where we brainstorm ideas and support each other’s growth (I’ve always had a soft spot for front-end magic). Feel free to explore my work on GitHub or connect on LinkedIn!";
+    const fullText = "Hi, I'm Charlie Ålander. I like building websites and seeing ideas take form. Lately I have been building features and tools with React, Node.js, Firebase, AWS and RESTful APIs. I thrive in small teams where we bounce ideas off each other and lift one another up (I have always had a soft spot for front end magic). In my spare time I am an avid Dungeons and Dragons player. Feel free to explore my work on GitHub or connect on LinkedIn!";
 
     // Reference to store typing interval
     const typingIntervalRef = useRef<NodeJS.Timeout | null>(null);

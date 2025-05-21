@@ -32,9 +32,7 @@ const getFirebaseConfig = (): FirebaseOptions | null => {
     return null;
 };
 
-// Helper to get page name from path
 const getPageNameFromPath = (path: string): string => {
-    // Remove leading slash and query parameters
     const cleanPath = path.split('?')[0].replace(/^\/+/, '');
 
     if (cleanPath === '') return 'Home';
@@ -43,13 +41,11 @@ const getPageNameFromPath = (path: string): string => {
     if (cleanPath === 'translator') return 'Translator';
     if (cleanPath === 'stonks') return 'Stock Dashboard';
 
-    // Convert path to title case for other routes
     return cleanPath.split('/').map(segment =>
         segment.charAt(0).toUpperCase() + segment.slice(1)
     ).join(' - ');
 };
 
-// We only want to initialize Firebase once
 let analyticsInstance: Analytics | null = null;
 
 export function FirebaseAnalytics() {
@@ -57,7 +53,7 @@ export function FirebaseAnalytics() {
     const searchParams = useSearchParams();
     const [initialized, setInitialized] = useState(false);
 
-    // Initialize Firebase only once
+
     useEffect(() => {
         if (typeof window === 'undefined') {
             return;
@@ -65,13 +61,11 @@ export function FirebaseAnalytics() {
 
         const initializeAnalytics = async () => {
             try {
-                // Skip initialization if we've already done it
                 if (analyticsInstance) {
                     setInitialized(true);
                     return;
                 }
 
-                // Check if analytics is supported
                 const supported = await isSupported();
                 if (!supported) {
                     return;
@@ -82,7 +76,6 @@ export function FirebaseAnalytics() {
                     return;
                 }
 
-                // Initialize Firebase if not already initialized
                 let app;
                 if (getApps().length === 0) {
                     app = initializeApp(firebaseConfig);
@@ -90,7 +83,6 @@ export function FirebaseAnalytics() {
                     app = getApps()[0];
                 }
 
-                // Create analytics instance
                 analyticsInstance = getAnalytics(app);
                 setAnalyticsCollectionEnabled(analyticsInstance, true);
 
@@ -103,22 +95,18 @@ export function FirebaseAnalytics() {
         initializeAnalytics();
     }, []);
 
-    // Track page views when the pathname changes
     useEffect(() => {
         if (!initialized || !pathname || typeof window === 'undefined' || !analyticsInstance) {
             return;
         }
 
         try {
-            // Combine pathname and search params
             const fullPath = searchParams?.toString()
                 ? `${pathname}?${searchParams.toString()}`
                 : pathname;
 
-            // Get a descriptive page name based on the current path
             const pageName = getPageNameFromPath(pathname);
 
-            // Log the page view with all necessary information
             logEvent(analyticsInstance, 'page_view', {
                 page_path: fullPath,
                 page_location: window.location.href,
@@ -126,7 +114,6 @@ export function FirebaseAnalytics() {
                 screen_name: pageName
             });
 
-            // Also send a separate screen_view event for better reporting
             logEvent(analyticsInstance, 'screen_view', {
                 firebase_screen: pageName,
                 firebase_screen_class: pageName
